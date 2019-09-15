@@ -130,7 +130,7 @@ def get_data(fname, start_line, gantry_cutoff=False, debug=False):
 
     return (nc_data, gantry_data)
 
-def plot_data(filename, pitch=False, make_pdf=False, gantry_cutoff=False,
+def plot_data(filename, nc_unit, make_pdf=False, gantry_cutoff=False,
               by_index=False, debug=False):
     # data in format ([TIME, ACTPOS, SETPOS, ACTVELO, SETVELO, POSDIFF],
     #                 [TIME_GANTRY, X_GANTRY, Y_GANTRY])
@@ -142,11 +142,7 @@ def plot_data(filename, pitch=False, make_pdf=False, gantry_cutoff=False,
     double_plot_labels = ['Position', 'Velocity']
     gantry_labels = ['X Gantry Difference', 'Y Gantry Difference']
 
-    # Units for y axis
-    if pitch:
-        nc_unit = 'urad'
-    else:
-        nc_unit = 'mm'
+    # Units for gantry axis
     gantry_unit = 'nm'
 
     # First make double plots: actual and set vs time
