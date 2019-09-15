@@ -130,20 +130,31 @@ def get_data(fname, start_line, gantry_cutoff=False, debug=False):
 
     return (nc_data, gantry_data)
 
-def plot_data(filename, nc_unit, make_pdf=False, gantry_cutoff=False,
+def plot_data(filename, nc_unit, gantry_unit='nm', gantry_cutoff=False,
               by_index=False, debug=False):
+    """
+    Function to plot NC Data: ACTPOS, SETPOS, ACTVELO, SETVELO, POSDIFF vs TIME
+
+    Parameters
+    ----------
+    filename : str
+        path to TwinCAT generated csv file
+    nc_unit : str
+        engineering unit in TwinCAT NC paramaters
+    gantry_unit : str
+        unit for gantry data
+    ganrty_cutoff : bool
+        cut off gantry data as it was overfilled
+    by_index : bool
+        plot y vs index instead of time
+    debug : bool
+        print some debug information such as array sizes
+    """
     # data in format ([TIME, ACTPOS, SETPOS, ACTVELO, SETVELO, POSDIFF],
     #                 [TIME_GANTRY, X_GANTRY, Y_GANTRY])
     all_data = get_data(filename, 22, gantry_cutoff=gantry_cutoff, debug=debug)
     nc_data = all_data[0]
     gantry_data = all_data[1]
-
-    # Labels for what were plotting
-    double_plot_labels = ['Position', 'Velocity']
-    gantry_labels = ['X Gantry Difference', 'Y Gantry Difference']
-
-    # Units for gantry axis
-    gantry_unit = 'nm'
 
     # First make double plots: actual and set vs time
     # ACTPOS, SETPOS vs TIME
@@ -158,6 +169,17 @@ def plot_data(filename, nc_unit, make_pdf=False, gantry_cutoff=False,
     make_single_plot(nc_data[0], nc_data[5], 'Position Difference',
                      'Position Difference (%s)' % nc_unit,
                      'Position Difference', by_index=by_index)
+
+    # Make Ganrty plots:
+    # X Gantry
+    make_single_plot(gantry_data[0], gantry_data[1], 'X Gantry Difference',
+                     'X Gantry Difference (%s)' % gantry_unit,
+                     'X Gantry Difference', by_index=by_index)
+
+    # Y Gantry
+    make_single_plot(gantry_data[0], gantry_data[2], 'Y Gantry Difference',
+                     'Y Gantry Difference (%s)' % gantry_unit,
+                     'Y Gantry Difference', by_index=by_index)
 
 
 def make_double_plot(time, y1, y2, y1_label, y2_label, y_axis_label, plot_label,
