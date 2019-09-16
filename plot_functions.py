@@ -139,14 +139,19 @@ def plot_data(filename, nc_unit, gantry_unit='nm', gantry_cutoff=False,
     ----------
     filename : str
         path to TwinCAT generated csv file
+
     nc_unit : str
         engineering unit in TwinCAT NC paramaters
+
     gantry_unit : str
         unit for gantry data
+
     ganrty_cutoff : bool
         cut off gantry data as it was overfilled
+
     by_index : bool
         plot y vs index instead of time
+
     debug : bool
         print some debug information such as array sizes
     """
@@ -191,19 +196,24 @@ def make_double_plot(time, y1, y2, y1_label, y2_label, y_axis_label, plot_label,
     ----------
     time : numpy array
         time in seconds
+
     y1 : numpy array
         first y axis data, i.e act_position, act_velocity. etc.
+
     y2 : numpy array
         second y axis data, i.e set_pos, etc.
+
     y1_label : str
         first y vs t label
+
     y2_label : str
         second y_vs t label
+
     plot_label : str
         plot title
+
     by_index : bool, opt :
         plot vs index instead of time
-
     """
     f, ax = plt.subplots()
     if by_index:
@@ -228,15 +238,18 @@ def make_single_plot(time, y, y_label, y_axis_label, plot_label, by_index=False)
     ----------
     time : numpy array
         time in seconds
+
     y : numpy array
         y axis data, i.e act_position, act_velocity. etc.
+
     y_axis_label : str
         y vs t curve label
+
     plot_label : str
         plot title
+
     by_index : bool, opt :
         plot vs index instead of time
-
     """
     f, ax = plt.subplots()
     if by_index:
