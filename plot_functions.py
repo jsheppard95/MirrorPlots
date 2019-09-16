@@ -5,6 +5,11 @@ Module containing utility functions used in HOMS plot generation script
 import matplotlib.pyplot as plt
 import numpy as np
 
+# TODO:
+# - Overlay velocity and gantry difference - watch out for time array sizes
+# - Function to generate PDF
+# - Investigate slave axis data
+
 
 def get_data(fname, start_line, gantry_cutoff=False, debug=False):
     """
@@ -130,6 +135,7 @@ def get_data(fname, start_line, gantry_cutoff=False, debug=False):
 
     return (nc_data, gantry_data)
 
+
 def plot_data(filename, nc_unit, gantry_unit='nm', gantry_cutoff=False,
               by_index=False, debug=False):
     """
@@ -185,6 +191,34 @@ def plot_data(filename, nc_unit, gantry_unit='nm', gantry_cutoff=False,
     make_single_plot(gantry_data[0], gantry_data[2], 'Y Gantry Difference',
                      'Y Gantry Difference (%s)' % gantry_unit,
                      'Y Gantry Difference', by_index=by_index)
+    # ACTPOS, POSDIFF vs TIME
+    make_overlay_plot(nc_data[0], nc_data[1], nc_data[5],
+                      'Actual Position (%s)' % nc_unit,
+                      'Position Difference (%s)' % nc_unit, 'tab:red',
+                      'tab:blue', 'Actual Position and Position Difference',
+                      by_index=by_index)
+
+
+def make_overlay_plot(time, y1, y2, y1_axis_label, y2_axis_label, y1_color,
+                      y2_color, plot_label, by_index=False):
+    f, ax1 = plt.subplots()
+    ax1.set_xlabel('Time (s)')
+    ax1.set_ylabel(y1_axis_label, color=y1_color)
+    if by_index:
+        ax1.plot(y1, color=y1_color)
+    else:
+        ax1.plot(time, y1, color=y1_color)
+    ax1.tick_params(axis='y', labelcolor=y1_color)
+    ax2 = ax1.twinx()
+    ax2.set_ylabel(y2_axis_label, color=y2_color)
+    if by_index:
+        ax2.plot(y2, color=y2_color)
+    else:
+        ax2.plot(time, y2, color=y2_color)
+    ax2.tick_params(axis='y', labelcolor=y2_color)
+    f.tight_layout()
+    ax1.set_title(plot_label)
+    f.show()
 
 
 def make_double_plot(time, y1, y2, y1_label, y2_label, y_axis_label, plot_label,
