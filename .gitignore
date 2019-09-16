@@ -94,3 +94,6 @@ ENV/
 
 # csv files
 *.csv
+
+# PDF output files
+*.pdf

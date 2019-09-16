@@ -4,11 +4,15 @@ Module containing utility functions used in HOMS plot generation script
 
 import matplotlib.pyplot as plt
 import numpy as np
+import datetime
+from matplotlib.backends.backend_pdf import PdfPages
 
 # TODO:
 # - Overlay velocity and gantry difference - watch out for time array sizes
-# - Function to generate PDF
+# - Common plotting function that can be used for display and PDF
 # - Investigate slave axis data
+# - Should record and save setpos/setvelo of slave axis - not same as sp for
+#   master axis
 
 
 def get_data(fname, start_line, gantry_cutoff=False, debug=False):
@@ -137,7 +141,7 @@ def get_data(fname, start_line, gantry_cutoff=False, debug=False):
 
 
 def plot_data(filename, nc_unit, gantry_unit='nm', gantry_cutoff=False,
-              by_index=False, debug=False):
+              by_index=False, debug=False, pdf_title=None):
     """
     Function to plot NC Data: ACTPOS, SETPOS, ACTVELO, SETVELO, POSDIFF vs TIME
 
@@ -152,14 +156,17 @@ def plot_data(filename, nc_unit, gantry_unit='nm', gantry_cutoff=False,
     gantry_unit : str
         unit for gantry data
 
-    ganrty_cutoff : bool
+    ganrty_cutoff : bool, opt
         cut off gantry data as it was overfilled
 
-    by_index : bool
+    by_index : bool, opt
         plot y vs index instead of time
 
-    debug : bool
+    debug : bool, opt
         print some debug information such as array sizes
+
+    pdf_title : str, opt
+        Add figures generated to a PDF with this title
     """
     # data in format ([TIME, ACTPOS, SETPOS, ACTVELO, SETVELO, POSDIFF],
     #                 [TIME_GANTRY, X_GANTRY, Y_GANTRY])
@@ -197,6 +204,44 @@ def plot_data(filename, nc_unit, gantry_unit='nm', gantry_cutoff=False,
                       'Position Difference (%s)' % nc_unit, 'tab:red',
                       'tab:blue', 'Actual Position and Position Difference',
                       by_index=by_index)
+    if pdf_title:
+        with PdfPages(pdf_title) as pdf:
+            # First make title page:
+            date = datetime.datetime.now()
+            firstPage = plt.figure(figsize=(11.69, 8.27))
+            firstPage.clf()
+            firstPage.text(0.5, 0.5, filename, transform=firstPage.transFigure,
+                           size=24, ha="center")
+            firstPage.text(0.5, 0.5, date, transform=firstPage.transFigure,
+                           size=20, ha="center")
+            pdf.savefig()
+            plt.close()
+            # Now save figures - one per page
+            # ACTPOS, SETPOS vs TIME
+            make_double_pdf_plot(pdf, nc_data[0], nc_data[1], nc_data[2],
+                                 'Actual Position', 'Set Position',
+                                 'Position (%s)' % nc_unit,
+                                 'Actual Position and Set Position')
+            # ACTVELO, SETVELO vs TIME
+            make_double_pdf_plot(pdf, nc_data[0], nc_data[3], nc_data[4],
+                                 'Actual Velocity', 'Set Velocity',
+                                 'Velocity (%s/s)' % nc_unit,
+                                 'Actual Velocity and Set Velocity')
+            # POSDIFF vs TIME
+            make_single_pdf_plot(pdf, nc_data[0], nc_data[5],
+                                 'Position Difference',
+                                 'Position Difference (%s)' % nc_unit,
+                                 'Position Difference')
+            # X Gantry
+            make_single_pdf_plot(pdf, gantry_data[0], gantry_data[1],
+                                 'X Gantry Difference',
+                                 'X Gantry Difference (%s)' % gantry_unit,
+                                 'X Gantry Difference')
+            # Y Gantry
+            make_single_pdf_plot(pdf, gantry_data[0], gantry_data[2],
+                                 'Y Gantry Difference',
+                                 'Y Gantry Difference (%s)' % gantry_unit,
+                                 'Y Gantry Difference')
 
 
 def make_overlay_plot(time, y1, y2, y1_axis_label, y2_axis_label, y1_color,
@@ -221,8 +266,8 @@ def make_overlay_plot(time, y1, y2, y1_axis_label, y2_axis_label, y1_color,
     f.show()
 
 
-def make_double_plot(time, y1, y2, y1_label, y2_label, y_axis_label, plot_label,
-                     by_index=False):
+def make_double_plot(time, y1, y2, y1_label, y2_label, y_axis_label,
+                     plot_label, by_index=False):
     """
     Function to make a basic plot
 
@@ -260,6 +305,7 @@ def make_double_plot(time, y1, y2, y1_label, y2_label, y_axis_label, plot_label,
         ax.set_xlabel('Time (s)')
     ax.set_ylabel(y_axis_label)
     ax.legend(loc='best')
+    ax.grid(True)
     ax.set_title(plot_label)
     f.show()
 
@@ -294,5 +340,81 @@ def make_single_plot(time, y, y_label, y_axis_label, plot_label, by_index=False)
         ax.set_xlabel('Time (s)')
     ax.set_ylabel(y_axis_label)
     ax.legend(loc='best')
+    ax.grid(True)
     ax.set_title(plot_label)
     f.show()
+
+
+def make_double_pdf_plot(pdf, time, y1, y2, y1_label, y2_label, y_axis_label,
+                         plot_label):
+    """
+    Function to make a basic plot
+
+    Parameters:
+    ----------
+    pdf : PdfPages object
+        matplotlib.backends.backend_pdf.PdfPages object to write figures to
+
+    time : numpy array
+        time in seconds
+
+    y1 : numpy array
+        first y axis data, i.e act_position, act_velocity. etc.
+
+    y2 : numpy array
+        second y axis data, i.e set_pos, etc.
+
+    y1_label : str
+        first y vs t label
+
+    y2_label : str
+        second y vs t label
+
+    plot_label : str
+        plot title
+    """
+    f = plt.figure(figsize=(11.69, 8.27))
+    plt.plot(time, y1, label=y1_label)
+    plt.plot(time, y2, label=y2_label)
+    plt.xlabel('Time (s)')
+    plt.ylabel(y_axis_label)
+    plt.legend(loc='best')
+    plt.grid(True)
+    plt.title(plot_label)
+    pdf.savefig()
+    plt.close()
+
+
+def make_single_pdf_plot(pdf, time, y, y_label, y_axis_label, plot_label):
+    """
+    Function to make a basic plot of y vs t
+
+    Parameters:
+    ----------
+    pdf : PdfPages object
+        matplotlib.backends.backend_pdf.PdfPages object to write figures to
+
+    time : numpy array
+        time in seconds
+
+    y : numpy array
+        y axis data, i.e act_position, act_velocity. etc.
+
+    y_axis_label : str
+        y vs t curve label
+
+    plot_label : str
+        plot title
+
+    by_index : bool, opt :
+        plot vs index instead of time
+    """
+    f = plt.figure(figsize=(11.69, 8.27))
+    plt.plot(time, y, label=y_label)
+    plt.xlabel('Time (s)')
+    plt.ylabel(y_axis_label)
+    plt.legend(loc='best')
+    plt.grid(True)
+    plt.title(plot_label)
+    pdf.savefig()
+    plt.close()
