@@ -261,51 +261,60 @@ def plot_data(filename, nc_unit, gantry_unit='nm', include_slave=False,
             plt.close()
             # Now save figures - one per page
             # ACTPOS, SETPOS vs TIME
-            make_double_pdf_plot(pdf, nc_data[0], nc_data[1], nc_data[2],
-                                 'Actual Position', 'Set Position',
-                                 'Position (%s)' % nc_unit,
-                                 'Actual Position and Set Position')
+            make_double_plot(nc_data[0], nc_data[1], nc_data[2],
+                             'Actual Position', 'Set Position',
+                             'Position (%s)' % nc_unit,
+                             'Actual Position and Set Position', show=False)
+            pdf.savefig()
             # ACTVELO, SETVELO vs TIME
-            make_double_pdf_plot(pdf, nc_data[0], nc_data[3], nc_data[4],
-                                 'Actual Velocity', 'Set Velocity',
-                                 'Velocity (%s/s)' % nc_unit,
-                                 'Actual Velocity and Set Velocity')
+            make_double_plot(nc_data[0], nc_data[3], nc_data[4],
+                             'Actual Velocity', 'Set Velocity',
+                             'Velocity (%s/s)' % nc_unit,
+                             'Actual Velocity and Set Velocity', show=False)
+            pdf.savefig()
             # POSDIFF vs TIME
-            make_single_pdf_plot(pdf, nc_data[0], nc_data[5],
-                                 'Position Difference',
-                                 'Position Difference (%s)' % nc_unit,
-                                 'Position Difference')
+            make_single_plot(nc_data[0], nc_data[5],
+                             'Position Difference',
+                             'Position Difference (%s)' % nc_unit,
+                             'Position Difference', show=False)
+            pdf.savefig()
             # X Gantry
-            make_single_pdf_plot(pdf, gantry_data[0], gantry_data[1],
-                                 'X Gantry Difference',
-                                 'X Gantry Difference (%s)' % gantry_unit,
-                                 'X Gantry Difference')
+            make_single_plot(gantry_data[0], gantry_data[1],
+                             'X Gantry Difference',
+                             'X Gantry Difference (%s)' % gantry_unit,
+                             'X Gantry Difference', show=False)
+            pdf.savefig()
             # Y Gantry
-            make_single_pdf_plot(pdf, gantry_data[0], gantry_data[2],
-                                 'Y Gantry Difference',
-                                 'Y Gantry Difference (%s)' % gantry_unit,
-                                 'Y Gantry Difference')
+            make_single_plot(gantry_data[0], gantry_data[2],
+                             'Y Gantry Difference',
+                             'Y Gantry Difference (%s)' % gantry_unit,
+                             'Y Gantry Difference', show=False)
+            pdf.savefig()
             # Slave ACTPOS, SETPOS vs TIME
-            make_double_pdf_plot(pdf, gantry_data[0], nc_data[6], nc_data[7],
-                                 'Slave Actual Position', 'Slave Set Position',
-                                 'Position (%s)' % nc_unit,
-                                 'Slave Actual Position and Set Position')
-
+            make_double_plot(gantry_data[0], nc_data[6], nc_data[7],
+                             'Slave Actual Position', 'Slave Set Position',
+                             'Position (%s)' % nc_unit,
+                             'Slave Actual Position and Set Position',
+                             show=False)
+            pdf.savefig()
             # Slave ACTVELO, SETVELO vs TIME
-            make_double_pdf_plot(pdf, gantry_data[0], nc_data[8], nc_data[9],
-                                 'Slave Actual Velocity', 'Slave Set Velocity',
-                                 'Velocity (%s)' % nc_unit,
-                                 'Slave Actual Velocity and Set Velocity')
+            make_double_plot(gantry_data[0], nc_data[8], nc_data[9],
+                             'Slave Actual Velocity', 'Slave Set Velocity',
+                             'Velocity (%s)' % nc_unit,
+                             'Slave Actual Velocity and Set Velocity',
+                             show=False)
+            pdf.savefig()
             # Slave POSDIFF vs TIME
-            make_single_pdf_plot(pdf, gantry_data[0], nc_data[10],
-                                 'Slave Position Difference',
-                                 'Position Difference (%s)' % nc_unit,
-                                 'Slave Position Difference')
+            make_single_plot(gantry_data[0], nc_data[10],
+                             'Slave Position Difference',
+                             'Position Difference (%s)' % nc_unit,
+                             'Slave Position Difference', show=False)
+            pdf.savefig()
 
 
 def make_overlay_plot(time, y1, y2, y1_axis_label, y2_axis_label, y1_color,
-                      y2_color, plot_label, by_index=False):
-    f, ax1 = plt.subplots()
+                      y2_color, plot_label, by_index=False, show=True):
+    f, ax1 = plt.subplots(figsize=(11.69, 8.27))
     ax1.set_xlabel('Time (s)')
     ax1.set_ylabel(y1_axis_label, color=y1_color)
     if by_index:
@@ -322,11 +331,12 @@ def make_overlay_plot(time, y1, y2, y1_axis_label, y2_axis_label, y1_color,
     ax2.tick_params(axis='y', labelcolor=y2_color)
     f.tight_layout()
     ax1.set_title(plot_label)
-    f.show()
+    if show:
+        f.show()
 
 
 def make_double_plot(time, y1, y2, y1_label, y2_label, y_axis_label,
-                     plot_label, by_index=False):
+                     plot_label, by_index=False, show=True):
     """
     Function to make a basic plot
 
@@ -353,7 +363,7 @@ def make_double_plot(time, y1, y2, y1_label, y2_label, y_axis_label,
     by_index : bool, opt :
         plot vs index instead of time
     """
-    f, ax = plt.subplots()
+    f, ax = plt.subplots(figsize=(11.69, 8.27))
     if by_index:
         ax.plot(y1, label=y1_label)
         ax.plot(y2, label=y2_label)
@@ -366,10 +376,12 @@ def make_double_plot(time, y1, y2, y1_label, y2_label, y_axis_label,
     ax.legend(loc='best')
     ax.grid(True)
     ax.set_title(plot_label)
-    f.show()
+    if show:
+        f.show()
 
 
-def make_single_plot(time, y, y_label, y_axis_label, plot_label, by_index=False):
+def make_single_plot(time, y, y_label, y_axis_label, plot_label,
+                     by_index=False, show=True):
     """
     Function to make a basic plot of y vs t
 
@@ -390,7 +402,7 @@ def make_single_plot(time, y, y_label, y_axis_label, plot_label, by_index=False)
     by_index : bool, opt :
         plot vs index instead of time
     """
-    f, ax = plt.subplots()
+    f, ax = plt.subplots(figsize=(11.69, 8.27))
     if by_index:
         ax.plot(y, label=y_label)
         ax.set_xlabel('Index, (Integer)')
@@ -401,79 +413,5 @@ def make_single_plot(time, y, y_label, y_axis_label, plot_label, by_index=False)
     ax.legend(loc='best')
     ax.grid(True)
     ax.set_title(plot_label)
-    f.show()
-
-
-def make_double_pdf_plot(pdf, time, y1, y2, y1_label, y2_label, y_axis_label,
-                         plot_label):
-    """
-    Function to make a basic plot
-
-    Parameters:
-    ----------
-    pdf : PdfPages object
-        matplotlib.backends.backend_pdf.PdfPages object to write figures to
-
-    time : numpy array
-        time in seconds
-
-    y1 : numpy array
-        first y axis data, i.e act_position, act_velocity. etc.
-
-    y2 : numpy array
-        second y axis data, i.e set_pos, etc.
-
-    y1_label : str
-        first y vs t label
-
-    y2_label : str
-        second y vs t label
-
-    plot_label : str
-        plot title
-    """
-    f = plt.figure(figsize=(11.69, 8.27))
-    plt.plot(time, y1, label=y1_label)
-    plt.plot(time, y2, label=y2_label)
-    plt.xlabel('Time (s)')
-    plt.ylabel(y_axis_label)
-    plt.legend(loc='best')
-    plt.grid(True)
-    plt.title(plot_label)
-    pdf.savefig()
-    plt.close()
-
-
-def make_single_pdf_plot(pdf, time, y, y_label, y_axis_label, plot_label):
-    """
-    Function to make a basic plot of y vs t
-
-    Parameters:
-    ----------
-    pdf : PdfPages object
-        matplotlib.backends.backend_pdf.PdfPages object to write figures to
-
-    time : numpy array
-        time in seconds
-
-    y : numpy array
-        y axis data, i.e act_position, act_velocity. etc.
-
-    y_axis_label : str
-        y vs t curve label
-
-    plot_label : str
-        plot title
-
-    by_index : bool, opt :
-        plot vs index instead of time
-    """
-    f = plt.figure(figsize=(11.69, 8.27))
-    plt.plot(time, y, label=y_label)
-    plt.xlabel('Time (s)')
-    plt.ylabel(y_axis_label)
-    plt.legend(loc='best')
-    plt.grid(True)
-    plt.title(plot_label)
-    pdf.savefig()
-    plt.close()
+    if show:
+        f.show()
