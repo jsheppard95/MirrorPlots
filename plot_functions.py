@@ -1,5 +1,7 @@
 """
 Module containing utility functions used in HOMS plot generation script
+
+Author: J. Sheppard
 """
 
 import matplotlib.pyplot as plt
@@ -10,9 +12,11 @@ from matplotlib.backends.backend_pdf import PdfPages
 # TODO:
 # - Overlay velocity and gantry difference - watch out for time array sizes
 # - Common plotting function that can be used for display and PDF
-# - Investigate slave axis data
-# - Should record and save setpos/setvelo of slave axis - not same as sp for
-#   master axis
+# - Function to calculate static and dynamic gantry errors
+#   - Input should be StartGantryIndeces, PeakGantryIndeces, StopGantryIndeces
+# - Change name of `gantry_cutoff` applies to any PLC variable (not NC)
+# - Function to make a plot of limit positions
+#   - Input should be ROI
 
 
 def get_data(fname, start_line, gantry_cutoff=False, debug=False):
@@ -76,7 +80,9 @@ def get_data(fname, start_line, gantry_cutoff=False, debug=False):
     x_gantry = []
     y_gantry = []
     act_pos_slave = []
+    set_pos_slave = []
     act_velo_slave = []
+    set_velo_slave = []
     pos_diff_slave = []
 
     with open(fname, 'r') as f:
@@ -96,8 +102,10 @@ def get_data(fname, start_line, gantry_cutoff=False, debug=False):
                     x_gantry.append(float(line_array[11]))
                     y_gantry.append(float(line_array[13]))
                     act_pos_slave.append(float(line_array[15]))
-                    act_velo_slave.append(float(line_array[17]))
-                    pos_diff_slave.append(float(line_array[19]))
+                    set_pos_slave.append(float(line_array[17]))
+                    act_velo_slave.append(float(line_array[19]))
+                    set_velo_slave.append(float(line_array[21]))
+                    pos_diff_slave.append(float(line_array[23]))
                 except:
                     pass
 
@@ -110,7 +118,9 @@ def get_data(fname, start_line, gantry_cutoff=False, debug=False):
     x_gantry = np.asarray(x_gantry)
     y_gantry = np.asarray(y_gantry)
     act_pos_slave = np.asarray(act_pos_slave)
+    set_pos_slave = np.asarray(set_pos_slave)
     act_velo_slave = np.asarray(act_velo_slave)
+    set_velo_slave = np.asarray(set_velo_slave)
     pos_diff_slave = np.asarray(pos_diff_slave)
 
     tvals = np.linspace(0, delta_t, len(act_pos))
@@ -119,12 +129,17 @@ def get_data(fname, start_line, gantry_cutoff=False, debug=False):
         gantry_stop_idx = len(act_pos) // 5 # can round
         x_gantry = x_gantry[: gantry_stop_idx]
         y_gantry = y_gantry[: gantry_stop_idx]
+        act_pos_slave = act_pos_slave[: gantry_stop_idx]
+        set_pos_slave = set_pos_slave[: gantry_stop_idx]
+        act_velo_slave = act_velo_slave[: gantry_stop_idx]
+        set_velo_slave = set_velo_slave[: gantry_stop_idx]
+        pos_diff_slave = pos_diff_slave[: gantry_stop_idx]
 
     tvals_gantry = np.linspace(0, delta_t, len(x_gantry))
 
     nc_data = np.asarray([tvals, act_pos, set_pos, act_velo, set_velo,
-                          pos_diff, act_pos_slave, act_velo_slave,
-                          pos_diff_slave])
+                          pos_diff, act_pos_slave, set_pos_slave,
+                          act_velo_slave, set_velo_slave, pos_diff_slave])
     gantry_data = np.asarray([tvals_gantry, x_gantry, y_gantry])
 
     if debug:
@@ -135,13 +150,18 @@ def get_data(fname, start_line, gantry_cutoff=False, debug=False):
         print('Number of POSDIFF Points:', len(pos_diff))
         print('Number of X gantry Points:', len(x_gantry))
         print('Number of Y gantry Points:', len(y_gantry))
+        print('Number of Slave Pos Points:', len(act_pos_slave))
+        print('Number of Slave Velo Points:', len(act_velo_slave))
+        print('Number of Slave POSDIFF Points:', len(pos_diff_slave))
+
         print('NC var to PLC var Ratio:', len(act_velo)/len(x_gantry))
 
     return (nc_data, gantry_data)
 
 
-def plot_data(filename, nc_unit, gantry_unit='nm', gantry_cutoff=False,
-              by_index=False, debug=False, pdf_title=None):
+def plot_data(filename, nc_unit, gantry_unit='nm', include_slave=False,
+              gantry_cutoff=False, by_index=False, debug=False,
+              pdf_title=None):
     """
     Function to plot NC Data: ACTPOS, SETPOS, ACTVELO, SETVELO, POSDIFF vs TIME
 
@@ -168,7 +188,9 @@ def plot_data(filename, nc_unit, gantry_unit='nm', gantry_cutoff=False,
     pdf_title : str, opt
         Add figures generated to a PDF with this title
     """
-    # data in format ([TIME, ACTPOS, SETPOS, ACTVELO, SETVELO, POSDIFF],
+    # data in format ([TIME, ACTPOS, SETPOS, ACTVELO, SETVELO, POSDIFF,
+    #                  ACTPOS-Slave, SETPOS-Slave, ACTVELO-Slave,
+    #                  SETVELO-Slave, POSDIFF-Slace],
     #                 [TIME_GANTRY, X_GANTRY, Y_GANTRY])
     all_data = get_data(filename, 22, gantry_cutoff=gantry_cutoff, debug=debug)
     nc_data = all_data[0]
@@ -183,7 +205,7 @@ def plot_data(filename, nc_unit, gantry_unit='nm', gantry_cutoff=False,
     make_double_plot(nc_data[0], nc_data[3], nc_data[4], 'Actual Velocity',
                      'Set Velocity', 'Velocity (%s/s)' % nc_unit,
                      'Actual Velocity and Set Velocity', by_index=by_index)
-    # Now make doubel plots: POSDIFF vs TIME
+    # Now make single plot: POSDIFF vs TIME
     make_single_plot(nc_data[0], nc_data[5], 'Position Difference',
                      'Position Difference (%s)' % nc_unit,
                      'Position Difference', by_index=by_index)
@@ -204,14 +226,35 @@ def plot_data(filename, nc_unit, gantry_unit='nm', gantry_cutoff=False,
                       'Position Difference (%s)' % nc_unit, 'tab:red',
                       'tab:blue', 'Actual Position and Position Difference',
                       by_index=by_index)
+    # Make Slave plots
+    if include_slave:
+        # Slave ACTPOS, SETPOS vs TIME
+        make_double_plot(gantry_data[0], nc_data[6], nc_data[7],
+                         'Slave Actual Position', 'Slave Set Position',
+                         'Position (%s)' % nc_unit,
+                         'Slave Actual Position and Set Position',
+                         by_index=by_index)
+        # Slave ACTVELO, SETVELO vs TIME
+        make_double_plot(gantry_data[0], nc_data[8], nc_data[9],
+                         'Slave Actual Velocity', 'Slave Set Velocity',
+                         'Velocity (%s/s)' % nc_unit,
+                         'Slave Actual Velocity and Set Velocity',
+                         by_index=by_index)
+        # Slave POSDIFF vs TIME
+        make_single_plot(gantry_data[0], nc_data[10], 'Slave Position Difference',
+                         'Position Difference (%s)' % nc_unit,
+                         'Slave Position Difference', by_index=by_index)
+
+    # Make PDF:
     if pdf_title:
         with PdfPages(pdf_title) as pdf:
             # First make title page:
             date = datetime.datetime.now()
             firstPage = plt.figure(figsize=(11.69, 8.27))
             firstPage.clf()
-            firstPage.text(0.5, 0.5, filename, transform=firstPage.transFigure,
-                           size=24, ha="center")
+            firstPage.text(0.5, 0.5, filename + '\n',
+                           transform=firstPage.transFigure, size=24,
+                           ha="center")
             firstPage.text(0.5, 0.5, date, transform=firstPage.transFigure,
                            size=20, ha="center")
             pdf.savefig()
@@ -242,6 +285,22 @@ def plot_data(filename, nc_unit, gantry_unit='nm', gantry_cutoff=False,
                                  'Y Gantry Difference',
                                  'Y Gantry Difference (%s)' % gantry_unit,
                                  'Y Gantry Difference')
+            # Slave ACTPOS, SETPOS vs TIME
+            make_double_pdf_plot(pdf, gantry_data[0], nc_data[6], nc_data[7],
+                                 'Slave Actual Position', 'Slave Set Position',
+                                 'Position (%s)' % nc_unit,
+                                 'Slave Actual Position and Set Position')
+
+            # Slave ACTVELO, SETVELO vs TIME
+            make_double_pdf_plot(pdf, gantry_data[0], nc_data[8], nc_data[9],
+                                 'Slave Actual Velocity', 'Slave Set Velocity',
+                                 'Velocity (%s)' % nc_unit,
+                                 'Slave Actual Velocity and Set Velocity')
+            # Slave POSDIFF vs TIME
+            make_single_pdf_plot(pdf, gantry_data[0], nc_data[10],
+                                 'Slave Position Difference',
+                                 'Position Difference (%s)' % nc_unit,
+                                 'Slave Position Difference')
 
 
 def make_overlay_plot(time, y1, y2, y1_axis_label, y2_axis_label, y1_color,
