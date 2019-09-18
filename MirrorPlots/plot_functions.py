@@ -162,7 +162,7 @@ def get_data(fname, start_line, gantry_cutoff=False, debug=False):
 
 def plot_data(filename, nc_unit, gantry_unit='nm', include_slave=False,
               gantry_cutoff=False, by_index=False, debug=False,
-              pdf_title=None):
+              pdf_title=None, ll_roi=None, hl_roi=None):
     """
     Function to plot NC Data: ACTPOS, SETPOS, ACTVELO, SETVELO, POSDIFF vs TIME
 
@@ -188,6 +188,9 @@ def plot_data(filename, nc_unit, gantry_unit='nm', include_slave=False,
 
     pdf_title : str, opt
         Add figures generated to a PDF with this title
+
+    ll_roi : list, opt
+        list with two tuples [(xmin, xmax), (ymin, ymax)]
     """
     # data in format ([TIME, ACTPOS, SETPOS, ACTVELO, SETVELO, POSDIFF,
     #                  ACTPOS-Slave, SETPOS-Slave, ACTVELO-Slave,
@@ -230,11 +233,11 @@ def plot_data(filename, nc_unit, gantry_unit='nm', include_slave=False,
     make_roi_double_plot(nc_data[0], nc_data[1], nc_data[2], 'Actual Position',
                          'Set Position', 'Position (%s)' % nc_unit,
                          'Actual Position and Set Position - Positive Limits',
-                         (49.47, 762.249), (50185.6, 50200.7))
+                         hl_roi[0], hl_roi[1])
     make_roi_double_plot(nc_data[0], nc_data[1], nc_data[2], 'Actual Position',
                          'Set Position', 'Position (%s)' % nc_unit,
                          'Actual Position and Set Position - Negative Limits',
-                         (142.875, 849.323), (47907.1, 47933.5))
+                         ll_roi[0], ll_roi[1])
     # Make Slave plots
     if include_slave:
         # Slave ACTPOS, SETPOS vs TIME
@@ -315,15 +318,13 @@ def plot_data(filename, nc_unit, gantry_unit='nm', include_slave=False,
             make_roi_double_plot(nc_data[0], nc_data[1], nc_data[2], 'Actual Position',
                                  'Set Position', 'Position (%s)' % nc_unit,
                                  'Actual Position and Set Position - Positive Limits',
-                                 (49.47, 762.249), (50185.6, 50200.7),
-                                 show=False,
+                                 hl_roi[0], hl_roi[1], show=False,
                                  figsize=FIGSIZE)
             pdf.savefig()
             make_roi_double_plot(nc_data[0], nc_data[1], nc_data[2], 'Actual Position',
                                  'Set Position', 'Position (%s)' % nc_unit,
                                  'Actual Position and Set Position - Negative Limits',
-                                 (142.875, 849.323), (47907.1, 47933.5),
-                                 show=False,
+                                 ll_roi[0], ll_roi[1], show=False,
                                  figsize=FIGSIZE)
             pdf.savefig()
             if include_slave:
