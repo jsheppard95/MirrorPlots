@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import datetime
 from matplotlib.backends.backend_pdf import PdfPages
+import ntpath
 
 # TODO:
 # - Overlay velocity and gantry difference - watch out for time array sizes
@@ -226,6 +227,14 @@ def plot_data(filename, nc_unit, gantry_unit='nm', include_slave=False,
                       'Position Difference (%s)' % nc_unit, 'tab:red',
                       'tab:blue', 'Actual Position and Position Difference',
                       by_index=by_index)
+    make_roi_double_plot(nc_data[0], nc_data[1], nc_data[2], 'Actual Position',
+                         'Set Position', 'Position (%s)' % nc_unit,
+                         'Actual Position and Set Position - Positive Limits',
+                         (49.47, 762.249), (50185.6, 50200.7))
+    make_roi_double_plot(nc_data[0], nc_data[1], nc_data[2], 'Actual Position',
+                         'Set Position', 'Position (%s)' % nc_unit,
+                         'Actual Position and Set Position - Negative Limits',
+                         (142.875, 849.323), (47907.1, 47933.5))
     # Make Slave plots
     if include_slave:
         # Slave ACTPOS, SETPOS vs TIME
@@ -253,7 +262,7 @@ def plot_data(filename, nc_unit, gantry_unit='nm', include_slave=False,
             date = datetime.datetime.now()
             firstPage = plt.figure(figsize=FIGSIZE)
             firstPage.clf()
-            firstPage.text(0.5, 0.5, filename + '\n',
+            firstPage.text(0.5, 0.5, ntpath.basename(filename) + '\n',
                            transform=firstPage.transFigure, size=24,
                            ha="center")
             firstPage.text(0.5, 0.5, date, transform=firstPage.transFigure,
@@ -282,6 +291,13 @@ def plot_data(filename, nc_unit, gantry_unit='nm', include_slave=False,
                              'Position Difference', show=False,
                              figsize=FIGSIZE)
             pdf.savefig()
+            make_overlay_plot(nc_data[0], nc_data[1], nc_data[5],
+                              'Actual Position (%s)' % nc_unit,
+                              'Position Difference (%s)' % nc_unit, 'tab:red',
+                              'tab:blue', 'Actual Position and Position Difference',
+                              show=False,
+                              figsize=FIGSIZE)
+            pdf.savefig()
             # X Gantry
             make_single_plot(gantry_data[0], gantry_data[1],
                              'X Gantry Difference',
@@ -296,26 +312,41 @@ def plot_data(filename, nc_unit, gantry_unit='nm', include_slave=False,
                              'Y Gantry Difference', show=False,
                              figsize=FIGSIZE)
             pdf.savefig()
-            # Slave ACTPOS, SETPOS vs TIME
-            make_double_plot(gantry_data[0], nc_data[6], nc_data[7],
-                             'Slave Actual Position', 'Slave Set Position',
-                             'Position (%s)' % nc_unit,
-                             'Slave Actual Position and Set Position',
-                             show=False, figsize=FIGSIZE)
+            make_roi_double_plot(nc_data[0], nc_data[1], nc_data[2], 'Actual Position',
+                                 'Set Position', 'Position (%s)' % nc_unit,
+                                 'Actual Position and Set Position - Positive Limits',
+                                 (49.47, 762.249), (50185.6, 50200.7),
+                                 show=False,
+                                 figsize=FIGSIZE)
             pdf.savefig()
-            # Slave ACTVELO, SETVELO vs TIME
-            make_double_plot(gantry_data[0], nc_data[8], nc_data[9],
-                             'Slave Actual Velocity', 'Slave Set Velocity',
-                             'Velocity (%s)' % nc_unit,
-                             'Slave Actual Velocity and Set Velocity',
-                             show=False, figsize=FIGSIZE)
+            make_roi_double_plot(nc_data[0], nc_data[1], nc_data[2], 'Actual Position',
+                                 'Set Position', 'Position (%s)' % nc_unit,
+                                 'Actual Position and Set Position - Negative Limits',
+                                 (142.875, 849.323), (47907.1, 47933.5),
+                                 show=False,
+                                 figsize=FIGSIZE)
             pdf.savefig()
-            # Slave POSDIFF vs TIME
-            make_single_plot(gantry_data[0], nc_data[10],
-                             'Slave Position Difference',
-                             'Position Difference (%s)' % nc_unit,
-                             'Slave Position Difference', show=False, figsize=FIGSIZE)
-            pdf.savefig()
+            if include_slave:
+                # Slave ACTPOS, SETPOS vs TIME
+                make_double_plot(gantry_data[0], nc_data[6], nc_data[7],
+                                 'Slave Actual Position', 'Slave Set Position',
+                                 'Position (%s)' % nc_unit,
+                                 'Slave Actual Position and Set Position',
+                                 show=False, figsize=FIGSIZE)
+                pdf.savefig()
+                # Slave ACTVELO, SETVELO vs TIME
+                make_double_plot(gantry_data[0], nc_data[8], nc_data[9],
+                                 'Slave Actual Velocity', 'Slave Set Velocity',
+                                 'Velocity (%s)' % nc_unit,
+                                 'Slave Actual Velocity and Set Velocity',
+                                 show=False, figsize=FIGSIZE)
+                pdf.savefig()
+                # Slave POSDIFF vs TIME
+                make_single_plot(gantry_data[0], nc_data[10],
+                                 'Slave Position Difference',
+                                 'Position Difference (%s)' % nc_unit,
+                                 'Slave Position Difference', show=False, figsize=FIGSIZE)
+                pdf.savefig()
 
 
 def make_overlay_plot(time, y1, y2, y1_axis_label, y2_axis_label, y1_color,
@@ -427,3 +458,27 @@ def make_single_plot(time, y, y_label, y_axis_label, plot_label,
     ax.set_title(plot_label)
     if show:
         f.show()
+
+
+def make_roi_double_plot(time, y1, y2, y1_label, y2_label, y_axis_label,
+                         plot_label, x_range, y_range, show=True,
+                         figsize=None):
+    """
+    x_range : tuple
+        (x_low_idx, x_high_idx)
+
+    y_range : tuple
+        (y_low_idx, y_high_idx)
+    """
+    f, ax =plt.subplots(figsize=figsize)
+    ax.plot(time, y1, label=y1_label)
+    ax.plot(time, y2, label=y2_label)
+    ax.set_xlim(x_range)
+    ax.set_ylim(y_range)
+    ax.set_ylabel(y_axis_label)
+    ax.legend(loc='best')
+    ax.grid(True)
+    ax.set_title(plot_label)
+    if show:
+        f.show()
+
