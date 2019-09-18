@@ -162,7 +162,7 @@ def get_data(fname, start_line, gantry_cutoff=False, debug=False):
 
 def plot_data(filename, nc_unit, gantry_unit='nm', include_slave=False,
               gantry_cutoff=False, by_index=False, debug=False,
-              pdf_title=None, ll_roi=None, hl_roi=None):
+              pdf_title=None, ll_roi=[None, None], hl_roi=[None, None]):
     """
     Function to plot NC Data: ACTPOS, SETPOS, ACTVELO, SETVELO, POSDIFF vs TIME
 
