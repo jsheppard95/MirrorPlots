@@ -100,13 +100,13 @@ def get_data(fname, start_line, gantry_cutoff=False, debug=False):
                     act_velo.append(float(line_array[5]))
                     set_velo.append(float(line_array[7]))
                     pos_diff.append(float(line_array[9]))
-                    x_gantry.append(float(line_array[11]))
-                    y_gantry.append(float(line_array[13]))
-                    act_pos_slave.append(float(line_array[15]))
-                    set_pos_slave.append(float(line_array[17]))
-                    act_velo_slave.append(float(line_array[19]))
-                    set_velo_slave.append(float(line_array[21]))
-                    pos_diff_slave.append(float(line_array[23]))
+                    act_pos_slave.append(float(line_array[11]))
+                    set_pos_slave.append(float(line_array[13]))
+                    act_velo_slave.append(float(line_array[15]))
+                    set_velo_slave.append(float(line_array[17]))
+                    pos_diff_slave.append(float(line_array[19]))
+                    x_gantry.append(float(line_array[21]))
+                    y_gantry.append(float(line_array[23]))
                 except:
                     pass
 
@@ -116,13 +116,13 @@ def get_data(fname, start_line, gantry_cutoff=False, debug=False):
     act_velo = np.asarray(act_velo)
     set_velo = np.asarray(set_velo)
     pos_diff = np.asarray(pos_diff)
-    x_gantry = np.asarray(x_gantry)
-    y_gantry = np.asarray(y_gantry)
     act_pos_slave = np.asarray(act_pos_slave)
     set_pos_slave = np.asarray(set_pos_slave)
     act_velo_slave = np.asarray(act_velo_slave)
     set_velo_slave = np.asarray(set_velo_slave)
     pos_diff_slave = np.asarray(pos_diff_slave)
+    x_gantry = np.asarray(x_gantry)
+    y_gantry = np.asarray(y_gantry)
 
     tvals = np.linspace(0, delta_t, len(act_pos))
 
@@ -130,11 +130,6 @@ def get_data(fname, start_line, gantry_cutoff=False, debug=False):
         gantry_stop_idx = len(act_pos) // 5 # can round
         x_gantry = x_gantry[: gantry_stop_idx]
         y_gantry = y_gantry[: gantry_stop_idx]
-        act_pos_slave = act_pos_slave[: gantry_stop_idx]
-        set_pos_slave = set_pos_slave[: gantry_stop_idx]
-        act_velo_slave = act_velo_slave[: gantry_stop_idx]
-        set_velo_slave = set_velo_slave[: gantry_stop_idx]
-        pos_diff_slave = pos_diff_slave[: gantry_stop_idx]
 
     tvals_gantry = np.linspace(0, delta_t, len(x_gantry))
 
@@ -243,19 +238,20 @@ def plot_data(filename, nc_unit, gantry_unit='nm', include_slave=False,
     # Make Slave plots
     if include_slave:
         # Slave ACTPOS, SETPOS vs TIME
-        make_double_plot(gantry_data[0], nc_data[6], nc_data[7],
+        make_double_plot(nc_data[0], nc_data[6], nc_data[7],
                          'Slave Actual Position', 'Slave Set Position',
                          'Position (%s)' % nc_unit,
                          'Slave Actual Position and Set Position',
                          by_index=by_index)
         # Slave ACTVELO, SETVELO vs TIME
-        make_double_plot(gantry_data[0], nc_data[8], nc_data[9],
+        make_double_plot(nc_data[0], nc_data[8], nc_data[9],
                          'Slave Actual Velocity', 'Slave Set Velocity',
                          'Velocity (%s/s)' % nc_unit,
                          'Slave Actual Velocity and Set Velocity',
                          by_index=by_index)
         # Slave POSDIFF vs TIME
-        make_single_plot(gantry_data[0], nc_data[10], 'Slave Position Difference',
+        make_single_plot(nc_data[0], nc_data[10],
+                         'Slave Position Difference',
                          'Position Difference (%s)' % nc_unit,
                          'Slave Position Difference', by_index=by_index)
 
@@ -299,9 +295,9 @@ def plot_data(filename, nc_unit, gantry_unit='nm', include_slave=False,
             make_overlay_plot(nc_data[0], nc_data[1], nc_data[5],
                               'Actual Position (%s)' % nc_unit,
                               'Position Difference (%s)' % nc_unit, 'tab:red',
-                              'tab:blue', 'Actual Position and Position Difference',
-                              show=False,
-                              figsize=FIGSIZE)
+                              'tab:blue',
+                              'Actual Position and Position Difference',
+                              show=False, figsize=FIGSIZE)
             pdf.savefig()
             # X Gantry
             make_single_plot(gantry_data[0], gantry_data[1],
@@ -317,35 +313,35 @@ def plot_data(filename, nc_unit, gantry_unit='nm', include_slave=False,
                              'Y Gantry Difference', show=False,
                              figsize=FIGSIZE)
             pdf.savefig()
-            make_roi_double_plot(nc_data[0], nc_data[1], nc_data[2], 'Actual Position',
-                                 'Set Position', 'Position (%s)' % nc_unit,
-                                 'Actual Position and Set Position - Positive Limits',
-                                 hl_roi[0], hl_roi[1], show=False,
-                                 figsize=FIGSIZE)
+            make_roi_double_plot(nc_data[0], nc_data[1], nc_data[2],
+                        'Actual Position', 'Set Position',
+                        'Position (%s)' % nc_unit,
+                        'Actual Position and Set Position - Positive Limits',
+                        hl_roi[0], hl_roi[1], show=False, figsize=FIGSIZE)
             pdf.savefig()
-            make_roi_double_plot(nc_data[0], nc_data[1], nc_data[2], 'Actual Position',
-                                 'Set Position', 'Position (%s)' % nc_unit,
-                                 'Actual Position and Set Position - Negative Limits',
-                                 ll_roi[0], ll_roi[1], show=False,
-                                 figsize=FIGSIZE)
+            make_roi_double_plot(nc_data[0], nc_data[1], nc_data[2],
+                        'Actual Position', 'Set Position',
+                        'Position (%s)' % nc_unit,
+                        'Actual Position and Set Position - Negative Limits',
+                        ll_roi[0], ll_roi[1], show=False, figsize=FIGSIZE)
             pdf.savefig()
             if include_slave:
                 # Slave ACTPOS, SETPOS vs TIME
-                make_double_plot(gantry_data[0], nc_data[6], nc_data[7],
+                make_double_plot(nc_data[0], nc_data[6], nc_data[7],
                                  'Slave Actual Position', 'Slave Set Position',
                                  'Position (%s)' % nc_unit,
                                  'Slave Actual Position and Set Position',
                                  show=False, figsize=FIGSIZE)
                 pdf.savefig()
                 # Slave ACTVELO, SETVELO vs TIME
-                make_double_plot(gantry_data[0], nc_data[8], nc_data[9],
+                make_double_plot(nc_data[0], nc_data[8], nc_data[9],
                                  'Slave Actual Velocity', 'Slave Set Velocity',
                                  'Velocity (%s)' % nc_unit,
                                  'Slave Actual Velocity and Set Velocity',
                                  show=False, figsize=FIGSIZE)
                 pdf.savefig()
                 # Slave POSDIFF vs TIME
-                make_single_plot(gantry_data[0], nc_data[10],
+                make_single_plot(nc_data[0], nc_data[10],
                                  'Slave Position Difference',
                                  'Position Difference (%s)' % nc_unit,
                                  'Slave Position Difference', show=False, figsize=FIGSIZE)
