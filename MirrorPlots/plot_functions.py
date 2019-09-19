@@ -159,7 +159,7 @@ def get_data(fname, start_line, gantry_cutoff=False, debug=False):
 
 def plot_data(filename, nc_unit, gantry_unit='nm', include_slave=False,
               gantry_cutoff=False, by_index=False, debug=False,
-              pdf_title=None, ll_roi=[None, None], hl_roi=[None, None]):
+              pdf_title=None, ll_roi=None, hl_roi=None):
     """
     Function to plot NC Data: ACTPOS, SETPOS, ACTVELO, SETVELO, POSDIFF vs TIME
 
@@ -227,14 +227,18 @@ def plot_data(filename, nc_unit, gantry_unit='nm', include_slave=False,
                       'Position Difference (%s)' % nc_unit, 'tab:red',
                       'tab:blue', 'Actual Position and Position Difference',
                       by_index=by_index)
-    make_roi_double_plot(nc_data[0], nc_data[1], nc_data[2], 'Actual Position',
-                         'Set Position', 'Position (%s)' % nc_unit,
-                         'Actual Position and Set Position - Positive Limits',
-                         hl_roi[0], hl_roi[1])
-    make_roi_double_plot(nc_data[0], nc_data[1], nc_data[2], 'Actual Position',
-                         'Set Position', 'Position (%s)' % nc_unit,
-                         'Actual Position and Set Position - Negative Limits',
-                         ll_roi[0], ll_roi[1])
+    if hl_roi:
+        make_roi_double_plot(nc_data[0], nc_data[1], nc_data[2],
+                           'Actual Position', 'Set Position',
+                           'Position (%s)' % nc_unit,
+                           'Actual Position and Set Position - Positive Limits',
+                           hl_roi[0], hl_roi[1])
+    if ll_roi:
+        make_roi_double_plot(nc_data[0], nc_data[1], nc_data[2],
+                           'Actual Position',
+                           'Set Position', 'Position (%s)' % nc_unit,
+                           'Actual Position and Set Position - Negative Limits',
+                           ll_roi[0], ll_roi[1])
     # Make Slave plots
     if include_slave:
         # Slave ACTPOS, SETPOS vs TIME
@@ -313,18 +317,20 @@ def plot_data(filename, nc_unit, gantry_unit='nm', include_slave=False,
                              'Y Gantry Difference', show=False,
                              figsize=FIGSIZE)
             pdf.savefig()
-            make_roi_double_plot(nc_data[0], nc_data[1], nc_data[2],
+            if hl_roi:
+                make_roi_double_plot(nc_data[0], nc_data[1], nc_data[2],
                         'Actual Position', 'Set Position',
                         'Position (%s)' % nc_unit,
                         'Actual Position and Set Position - Positive Limits',
                         hl_roi[0], hl_roi[1], show=False, figsize=FIGSIZE)
-            pdf.savefig()
-            make_roi_double_plot(nc_data[0], nc_data[1], nc_data[2],
+                pdf.savefig()
+            if ll_roi:
+                make_roi_double_plot(nc_data[0], nc_data[1], nc_data[2],
                         'Actual Position', 'Set Position',
                         'Position (%s)' % nc_unit,
                         'Actual Position and Set Position - Negative Limits',
                         ll_roi[0], ll_roi[1], show=False, figsize=FIGSIZE)
-            pdf.savefig()
+                pdf.savefig()
             if include_slave:
                 # Slave ACTPOS, SETPOS vs TIME
                 make_double_plot(nc_data[0], nc_data[6], nc_data[7],
