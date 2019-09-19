@@ -93,7 +93,7 @@ def get_data(fname, start_line, gantry_cutoff=False, debug=False):
             line = f.readline()
             cnt += 1
             if cnt >= start_line:
-                line_array = line.split()
+                line_array = line.split('\t')
                 try:
                     act_pos.append(float(line_array[1]))
                     set_pos.append(float(line_array[3]))
@@ -146,6 +146,8 @@ def get_data(fname, start_line, gantry_cutoff=False, debug=False):
     if debug:
         print('Measurement time: %s s' % delta_t)
 
+        print('Number of tvals Points:', len(tvals))
+        print('Number of tvals_gantry Points:', len(tvals_gantry))
         print('Number of Pos Points:', len(act_pos))
         print('Number of Velo Points:', len(act_velo))
         print('Number of POSDIFF Points:', len(pos_diff))
