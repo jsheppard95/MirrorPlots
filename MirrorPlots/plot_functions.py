@@ -188,7 +188,7 @@ def plot_data(filename, nc_unit, gantry_unit='nm', include_slave=False,
     """
     # data in format ([TIME, ACTPOS, SETPOS, ACTVELO, SETVELO, POSDIFF,
     #                  ACTPOS-Slave, SETPOS-Slave, ACTVELO-Slave,
-    #                  SETVELO-Slave, POSDIFF-Slace],
+    #                  SETVELO-Slave, POSDIFF-Slave],
     #                 [TIME_GANTRY, X_GANTRY, Y_GANTRY])
     all_data = get_data(filename, 22, gantry_cutoff=gantry_cutoff, debug=debug)
     nc_data = all_data[0]
