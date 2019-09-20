@@ -12,13 +12,10 @@ import ntpath
 
 # TODO:
 # - Overlay velocity and gantry difference - watch out for time array sizes
-# - Common plotting function that can be used for display and PDF
 # - Function to calculate static and dynamic gantry errors
 #   - Input should be StartGantryIndeces, PeakGantryIndeces, StopGantryIndeces
 # - Change name of `gantry_cutoff` applies to any PLC variable (not NC)
-# - Function to make a plot of limit positions
-#   - Input should be ROI
-
+# - Reduce duplicated code - call plot functions in for loop
 
 def get_data(fname, start_line, gantry_cutoff=False, debug=False):
     """
