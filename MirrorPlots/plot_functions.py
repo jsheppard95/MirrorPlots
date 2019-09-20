@@ -10,12 +10,6 @@ import datetime
 from matplotlib.backends.backend_pdf import PdfPages
 import ntpath
 
-# TODO:
-# - Overlay velocity and gantry difference - watch out for time array sizes
-# - Function to calculate static and dynamic gantry errors
-#   - Input should be StartGantryIndeces, PeakGantryIndeces, StopGantryIndeces
-# - Change name of `gantry_cutoff` applies to any PLC variable (not NC)
-# - Reduce duplicated code - call plot functions in for loop
 
 def get_data(fname, start_line, gantry_cutoff=False, debug=False):
     """
