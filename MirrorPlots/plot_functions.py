@@ -223,17 +223,17 @@ def plot_data(filename, nc_unit, gantry_unit='nm', include_slave=False,
                       'tab:blue', 'Actual Position and Position Difference',
                       by_index=by_index)
     if hl_roi:
-        make_roi_double_plot(nc_data[0], nc_data[1], nc_data[2],
-                           'Actual Position', 'Set Position',
-                           'Position (%s)' % nc_unit,
-                           'Actual Position and Set Position - Positive Limits',
-                           hl_roi[0], hl_roi[1])
+        make_plot(nc_data[0], nc_data[1], 'Actual Position',
+                  'Position (%s)' % nc_unit,
+                  'Actual Position and Set Position - Positive Limits',
+                  y2=nc_data[2], y2_label='Set Position', x_range=hl_roi[0],
+                  y_range=hl_roi[1], by_index=by_index)
     if ll_roi:
-        make_roi_double_plot(nc_data[0], nc_data[1], nc_data[2],
-                           'Actual Position',
-                           'Set Position', 'Position (%s)' % nc_unit,
-                           'Actual Position and Set Position - Negative Limits',
-                           ll_roi[0], ll_roi[1])
+        make_plot(nc_data[0], nc_data[1], 'Actual Position',
+                  'Position (%s)' % nc_unit,
+                  'Actual Position and Set Position - Negative Limits',
+                  y2=nc_data[2], y2_label='Set Position', x_range=ll_roi[0],
+                  y_range=ll_roi[1], by_index=by_index)
     # Make Slave plots
     if include_slave:
         # Slave ACTPOS, SETPOS vs TIME
@@ -303,18 +303,20 @@ def plot_data(filename, nc_unit, gantry_unit='nm', include_slave=False,
                       'Y Gantry Difference', show=False, figsize=FIGSIZE)
             pdf.savefig()
             if hl_roi:
-                make_roi_double_plot(nc_data[0], nc_data[1], nc_data[2],
-                        'Actual Position', 'Set Position',
-                        'Position (%s)' % nc_unit,
-                        'Actual Position and Set Position - Positive Limits',
-                        hl_roi[0], hl_roi[1], show=False, figsize=FIGSIZE)
+                make_plot(nc_data[0], nc_data[1], 'Actual Position',
+                          'Position (%s)' % nc_unit,
+                          'Actual Position and Set Position - Positive Limits',
+                          y2=nc_data[2], y2_label='Set Position',
+                          x_range=hl_roi[0], y_range=hl_roi[1], show=False,
+                          figsize=FIGSIZE)
                 pdf.savefig()
             if ll_roi:
-                make_roi_double_plot(nc_data[0], nc_data[1], nc_data[2],
-                        'Actual Position', 'Set Position',
-                        'Position (%s)' % nc_unit,
-                        'Actual Position and Set Position - Negative Limits',
-                        ll_roi[0], ll_roi[1], show=False, figsize=FIGSIZE)
+                make_plot(nc_data[0], nc_data[1], 'Actual Position',
+                          'Position (%s)' % nc_unit,
+                          'Actual Position and Set Position - Negative Limits',
+                          y2=nc_data[2], y2_label='Set Position',
+                          x_range=ll_roi[0], y_range=ll_roi[1], show=False,
+                          figsize=FIGSIZE)
                 pdf.savefig()
             if include_slave:
                 # Slave ACTPOS, SETPOS vs TIME
@@ -362,7 +364,8 @@ def make_overlay_plot(time, y1, y2, y1_axis_label, y2_axis_label, y1_color,
 
 
 def make_plot(time, y1, y1_label, y_axis_label, plot_label, y2=None,
-              y2_label=None, by_index=False, show=True, figsize=None):
+              y2_label=None, x_range=None, y_range=None, by_index=False,
+              show=True, figsize=None):
     """
     Function to make a basic plot
 
@@ -406,33 +409,13 @@ def make_plot(time, y1, y1_label, y_axis_label, plot_label, y2=None,
         if y2 is not None:
             ax.plot(time, y2, label=y2_label)
         ax.set_xlabel('Time (s)')
+    if x_range:
+        ax.set_xlim(x_range)
+    if y_range:
+        ax.set_ylim(y_range)
     ax.set_ylabel(y_axis_label)
     ax.legend(loc='best')
     ax.grid(True)
     ax.set_title(plot_label)
     if show:
         f.show()
-
-
-def make_roi_double_plot(time, y1, y2, y1_label, y2_label, y_axis_label,
-                         plot_label, x_range, y_range, show=True,
-                         figsize=None):
-    """
-    x_range : tuple
-        (x_low_idx, x_high_idx)
-
-    y_range : tuple
-        (y_low_idx, y_high_idx)
-    """
-    f, ax =plt.subplots(figsize=figsize)
-    ax.plot(time, y1, label=y1_label)
-    ax.plot(time, y2, label=y2_label)
-    ax.set_xlim(x_range)
-    ax.set_ylim(y_range)
-    ax.set_ylabel(y_axis_label)
-    ax.legend(loc='best')
-    ax.grid(True)
-    ax.set_title(plot_label)
-    if show:
-        f.show()
-
