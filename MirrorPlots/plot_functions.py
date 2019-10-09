@@ -150,7 +150,11 @@ def get_data(fname, start_line, gantry_cutoff=False, debug=False):
 
 def plot_data(filename, nc_unit, gantry_unit='nm', include_slave=False,
               gantry_cutoff=False, by_index=False, debug=False,
-              pdf_title=None, ll_roi=None, hl_roi=None):
+              pdf_title=None, ll_roi=None, hl_roi=None,
+              move_start_indecesX=None, peak_gantry_indecesX=None,
+              move_end_indecesX=None,
+              move_start_indecesY=None, peak_gantry_indecesY=None,
+              move_end_indecesY=None):
     """
     Function to plot NC Data: ACTPOS, SETPOS, ACTVELO, SETVELO, POSDIFF vs TIME
 
@@ -338,6 +342,14 @@ def plot_data(filename, nc_unit, gantry_unit='nm', include_slave=False,
                           'Position Difference (%s)' % nc_unit,
                           'Slave Position Difference', show=False, figsize=FIGSIZE)
                 pdf.savefig()
+    if peak_gantry_indecesX:
+        # Calculate X gantry
+        calculate_gantry_err(gantry_data[1], move_start_indecesX,
+                             peak_gantry_indecesX, move_end_indecesX)
+    if peak_gantry_indecesY:
+        # Calculate Y gantry
+        calculate_gantry_err(gantry_data[2], move_start_indecesY,
+                             peak_gantry_indecesY, move_end_indecesY)
 
 
 def make_overlay_plot(time, y1, y2, y1_axis_label, y2_axis_label, y1_color,
@@ -419,3 +431,56 @@ def make_plot(time, y1, y1_label, y_axis_label, plot_label, y2=None,
     ax.set_title(plot_label)
     if show:
         f.show()
+
+
+def calculate_gantry_err(gantry_data, move_start_indeces, peak_gantry_indeces,
+                         move_end_indeces):
+    """
+    Function to calculate static and dynamic gantry error for given moves
+
+    Parameters:
+    -----------
+    gantry_data: numpy array
+        Gantry data used to calculate errors, either X or Y gantry
+
+    move_start_indeces : list
+        List of indeces corresponding to the start of each move in the gantry
+        data
+
+    peak_gantry_indeces : list
+        List of indeces corresponding to peak gantry values in the gantry data
+
+    move_end_indeces : list
+        List of indeces corresponding to the end of each move - i.e when
+        encoder noise has settled
+    """
+    gantry_before1 = gantry_data[:move_start_indeces[0]]
+    gantry_after = [] # will be 2D list, inner lists -> gantry after each peak
+    # No start after last move_end_indeces value
+    for i in range(len(move_start_indeces) - 1):
+        gantry_after_data = gantry_data[move_end_indeces[i]: move_start_indeces[i + 1]]
+        gantry_after.append(gantry_after_data)
+
+    gantry_after.append(gantry_data[move_end_indeces[len(move_end_indeces) - 1]:])
+    # Now have gantry data before and after each peak
+    gantry_before1_avg = np.mean(gantry_before1)
+    gantry_after_avgs = []
+    for data in gantry_after:
+        gantry_after_avgs.append(np.mean(data))
+    static_errs = []
+    static_err1 = gantry_after_avgs[0] - gantry_before1_avg
+    static_errs.append(static_err1)
+    for i in range(len(gantry_after_avgs) - 1):
+        static_err = gantry_after_avgs[i + 1] - gantry_after_avgs[i]
+        static_errs.append(abs(static_err))
+
+    dynamic_errs = []
+    dynamic_err1 = gantry_data[peak_gantry_indeces[0]] - gantry_before1_avg
+    dynamic_errs.append(dynamic_err1)
+    for i in range(1, len(peak_gantry_indeces)):
+        dynamic_err = gantry_data[peak_gantry_indeces[i]] - gantry_after_avgs[i - 1]
+        dynamic_errs.append(abs(dynamic_err))
+
+    # Print results
+    print('Static Errors:', static_errs)
+    print('Dynamic Errors:', dynamic_errs)
