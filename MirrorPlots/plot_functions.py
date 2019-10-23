@@ -469,14 +469,14 @@ def calculate_gantry_err(gantry_data, move_start_indeces, peak_gantry_indeces,
         gantry_after_avgs.append(np.mean(data))
     static_errs = []
     static_err1 = gantry_after_avgs[0] - gantry_before1_avg
-    static_errs.append(static_err1)
+    static_errs.append(abs(static_err1))
     for i in range(len(gantry_after_avgs) - 1):
         static_err = gantry_after_avgs[i + 1] - gantry_after_avgs[i]
         static_errs.append(abs(static_err))
 
     dynamic_errs = []
     dynamic_err1 = gantry_data[peak_gantry_indeces[0]] - gantry_before1_avg
-    dynamic_errs.append(dynamic_err1)
+    dynamic_errs.append(abs(dynamic_err1))
     for i in range(1, len(peak_gantry_indeces)):
         dynamic_err = gantry_data[peak_gantry_indeces[i]] - gantry_after_avgs[i - 1]
         dynamic_errs.append(abs(dynamic_err))
