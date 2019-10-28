@@ -484,3 +484,104 @@ def calculate_gantry_err(gantry_data, move_start_indeces, peak_gantry_indeces,
     # Print results
     print('Static Errors:', static_errs)
     print('Dynamic Errors:', dynamic_errs)
+
+
+def plot_and_zoom(filename, nc_unit, debug=False, by_index=False,
+                  pdf_title=None):
+    """
+    Function will take in a file with motion repeatability data, make a
+    basic position vs time plot, then ask the user to input a ROI and make
+    this zoomed plot, then add both to a pdf file
+
+    Parameters
+    ----------
+    filename : str
+        path to TwinCAT generated csv file
+
+    nc_unit : str
+        engineering unit in TwinCAT NC parameters
+
+    debug : bool, opt
+        print some debug information such as array sizes
+
+    by_index : bool, opt
+        plot y vs index instead of time
+
+    pdf_title : str, opt
+        Add figures generated to a PDF with this title
+    """
+    all_data = get_data(filename, 22, gantry_cutoff=True, debug=debug)
+    nc_data = all_data[0]
+    make_plot(nc_data[0], nc_data[1], 'Actual Position',
+              'Position (%s)' % nc_unit, 'Actual Position and Set Position',
+              y2=nc_data[2], y2_label='Set Position', by_index=by_index)
+    x_low = float(input('Enter X low: '))
+    x_high = float(input('Enter X high: '))
+    y_low = float(input('Enter Y low: '))
+    y_high = float(input('Enter Y high: '))
+    roi = [(x_low, x_high), (y_low, y_high)]
+    make_plot(nc_data[0], nc_data[1], 'Actual Position',
+              'Position (%s)' % nc_unit, 'Actual Position and Set Position',
+              y2=nc_data[2], y2_label='Set Position', x_range=roi[0],
+              y_range=roi[1], by_index=by_index)
+    FIGSIZE=(11.69, 8.27)
+    if pdf_title:
+        with PdfPages(pdf_title) as pdf:
+            # First make title page:
+            date = datetime.datetime.now()
+            firstPage = plt.figure(figsize=FIGSIZE)
+            firstPage.clf()
+            firstPage.text(0.5, 0.5, ntpath.basename(filename) + '\n',
+                           transform=firstPage.transFigure, size=24,
+                           ha="center")
+            firstPage.text(0.5, 0.5, date, transform=firstPage.transFigure,
+                           size=20, ha="center")
+            pdf.savefig()
+            plt.close()
+            # Now save figures - one per page
+            # ACTPOS, SETPOS vs TIME
+            make_plot(nc_data[0], nc_data[1], 'Actual Position',
+                      'Position (%s)' % nc_unit, 'Actual Position and Set Position',
+                      y2=nc_data[2], y2_label='Set Position', show=False,
+                      figsize=FIGSIZE)
+            pdf.savefig()
+            make_plot(nc_data[0], nc_data[1], 'Actual Position',
+                      'Position (%s)' % nc_unit, 'Actual Position and Set Position',
+                      y2=nc_data[2], y2_label='Set Position', x_range=roi[0],
+                      y_range=roi[1], show=False, figsize=FIGSIZE)
+            pdf.savefig()
+
+def plot_enc_noise(filename, nc_unit, debug=False, by_index=False):
+    all_data = get_data(filename, 22, gantry_cutoff=True, debug=debug)
+    nc_data = all_data[0]
+    make_plot(nc_data[0], nc_data[1], 'Actual Position',
+              'Position (%s)' % nc_unit, 'Actual Position and Set Position',
+              y2=nc_data[2], y2_label='Set Position', by_index=by_index)
+    fftplot(nc_data[0], nc_data[1])
+
+
+def fftplot(x_axis, y_axis,
+            xlabel=None, left_label='FFT Amplitude',
+            remove_dc=True, scale=1.0, alpha=0.7):
+    step_x = x_axis[1] - x_axis[0]
+    freqs = np.fft.rfftfreq(len(x_axis), step_x)
+    fft = np.fft.rfft(x_axis)
+    spectra = np.abs(fft) / len(fft)
+
+    # Remove DC component
+    if remove_dc:
+        data = spectra[1:]
+        x_axis = freqs[1:]
+    else:
+        data = spectra
+        x_axis = freqs
+
+    if xlabel is None:
+        xlabel = 'Frequency [Hz]'
+
+    f, ax = plt.subplots()
+    ax.plot(x_axis, data, alpha=alpha)
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(left_label)
+    ax.set_xlim(min(x_axis), max(x_axis))
+    f.show()
