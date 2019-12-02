@@ -11,7 +11,10 @@ import matplotlib.pyplot as plt
 # Plot Y HL Data
 #pf.plot_data(\
 #'/reg/neh/home/sheppard/FlatMirrors/M1K1/M1K1_ScopeFiles/Y_HL_rpt_2019_10_23.csv',
-#'um', include_slave=True, gantry_cutoff=True,
+#'um', include_slave=True, gantry_cutoff=True, by_index=True,
+#move_start_indecesY=[2112, 4200, 6432, 13083, 15147, 21900, 25036, 28995, 31208, 36259, 38313, 46846],
+#peak_gantry_indecesY=[2254, 4925, 6628, 13832, 15332, 24028, 26646, 30219, 31399, 37488, 39559, 47198],
+#move_end_indecesY=[3338, 6223, 10842, 15000, 17567, 24792, 27366, 30991, 34007, 38181, 42834, 47848])
 #hl_roi=[(-7.596, 482.932), (31595.3, 31601)],
 #pdf_title='M1K1-Y-HLPreInstallCheckoutPlots.pdf')
 
@@ -33,9 +36,9 @@ import matplotlib.pyplot as plt
 #'um', pdf_title='M1K1-Y-1umAdjust-PreInstallCheckoutPlots.pdf')
 
 # Plot Encoder Noise Data
-pf.plot_enc_noise(\
-'/reg/neh/home/sheppard/FlatMirrors/M1K1/M1K1_ScopeFiles/Y_EncNoise_2019_10_23.csv',
-'um')
+#pf.plot_enc_noise(\
+#'/reg/neh/home/sheppard/FlatMirrors/M1K1/M1K1_ScopeFiles/Y_EncNoise_2019_10_23.csv',
+#'um')
 ###########################################################################
 
 ###########################################################################
@@ -44,7 +47,10 @@ pf.plot_enc_noise(\
 # Plot X HL Data
 #pf.plot_data(\
 #'/reg/neh/home/sheppard/FlatMirrors/M1K1/M1K1_ScopeFiles/X_HL_rpt_2019_10_23.csv',
-#'um', include_slave=True, gantry_cutoff=True,
+#'um', include_slave=True, gantry_cutoff=True, by_index=True,
+#move_start_indecesX=[1059, 2479, 8165, 9844, 18761, 24600, 29330, 31020, 35690, 37495],
+#peak_gantry_indecesX=[1218, 2675, 8326, 9964, 18913, 24669, 29482, 31097, 35842, 37572],
+#move_end_indecesX=[2213, 3994, 9505, 11340, 20254, 26125, 30640, 32410, 37000, 38900])
 #hl_roi=[(-2.92, 464.72), (31758.4, 31769.4)],
 #pdf_title='M1K1-X-HLPreInstallCheckoutPlots.pdf')
 
@@ -70,10 +76,17 @@ pf.plot_enc_noise(\
 # Pitch Motion
 # Plot Pitch Data
 #pf.plot_data(\
-#'/reg/neh/home/sheppard/FlatMirrors/M1K2/M1K2_ScopeFiles/Pitch_LimSwitchRpt_2019_10_1.csv',
-#'urad', gantry_cutoff=True, hl_roi=[(-17.3134, 406.21), (25898.4, 25898.9)],
-#ll_roi=[(13.0417, 497.862), (25653.1, 25654.8)],
-#pdf_title='M1K2-Pitch-PreInstallCheckoutPlots.pdf')
+#'/reg/neh/home/sheppard/FlatMirrors/M1K1/M1K1_ScopeFiles/Pitch_LimSwitchRpt_2019_11_27.csv',
+#'urad', gantry_cutoff=True,
+#pdf_title='M1K1/M1K1-Pitch-PreInstallCheckoutPlots.pdf')
+
+#pf.plot_and_zoom(\
+#'/reg/neh/home/sheppard/FlatMirrors/M1K1/M1K1_ScopeFiles/Pitch_repeatability_2019_11_27.csv',
+#'urad', pdf_title='M1K1/M1K1-Pitch-Repeatability-PreInstallCheckoutPlots.pdf')
+
+pf.plot_and_zoom(\
+'/reg/neh/home/sheppard/FlatMirrors/M1K1/M1K1_ScopeFiles/Pitch_1um_adjust_2019_11_27.csv',
+'urad', pdf_title='M1K1/M1K1-Pitch-1umAdjust-PreInstallCheckoutPlots.pdf')
 ###########################################################################
 
 input('Press <Return> to close')

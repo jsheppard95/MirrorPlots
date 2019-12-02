@@ -11,7 +11,8 @@ from matplotlib.backends.backend_pdf import PdfPages
 import ntpath
 
 
-def get_data(fname, start_line, gantry_cutoff=False, debug=False):
+def get_data(fname, start_line, gantry_cutoff=False, debug=False,
+             include_slave=False):
     """
     Function to read data file and store data
     Since NC variable arrays are 5x longer that PLC variable arrays, will
@@ -86,18 +87,27 @@ def get_data(fname, start_line, gantry_cutoff=False, debug=False):
             if cnt >= start_line:
                 line_array = line.split('\t')
                 try:
-                    act_pos.append(float(line_array[1]))
-                    set_pos.append(float(line_array[3]))
-                    act_velo.append(float(line_array[5]))
-                    set_velo.append(float(line_array[7]))
-                    pos_diff.append(float(line_array[9]))
-                    act_pos_slave.append(float(line_array[11]))
-                    set_pos_slave.append(float(line_array[13]))
-                    act_velo_slave.append(float(line_array[15]))
-                    set_velo_slave.append(float(line_array[17]))
-                    pos_diff_slave.append(float(line_array[19]))
-                    x_gantry.append(float(line_array[21]))
-                    y_gantry.append(float(line_array[23]))
+                    if include_slave:
+                        act_pos.append(float(line_array[1]))
+                        set_pos.append(float(line_array[3]))
+                        act_velo.append(float(line_array[5]))
+                        set_velo.append(float(line_array[7]))
+                        pos_diff.append(float(line_array[9]))
+                        act_pos_slave.append(float(line_array[11]))
+                        set_pos_slave.append(float(line_array[13]))
+                        act_velo_slave.append(float(line_array[15]))
+                        set_velo_slave.append(float(line_array[17]))
+                        pos_diff_slave.append(float(line_array[19]))
+                        x_gantry.append(float(line_array[21]))
+                        y_gantry.append(float(line_array[23]))
+                    else:
+                        act_pos.append(float(line_array[1]))
+                        set_pos.append(float(line_array[3]))
+                        act_velo.append(float(line_array[5]))
+                        set_velo.append(float(line_array[7]))
+                        pos_diff.append(float(line_array[9]))
+                        x_gantry.append(float(line_array[11]))
+                        y_gantry.append(float(line_array[13]))
                 except:
                     pass
 
@@ -188,7 +198,8 @@ def plot_data(filename, nc_unit, gantry_unit='nm', include_slave=False,
     #                  ACTPOS-Slave, SETPOS-Slave, ACTVELO-Slave,
     #                  SETVELO-Slave, POSDIFF-Slave],
     #                 [TIME_GANTRY, X_GANTRY, Y_GANTRY])
-    all_data = get_data(filename, 22, gantry_cutoff=gantry_cutoff, debug=debug)
+    all_data = get_data(filename, 22, gantry_cutoff=gantry_cutoff, debug=debug,
+                        include_slave=include_slave)
     nc_data = all_data[0]
     gantry_data = all_data[1]
 
