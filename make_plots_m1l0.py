@@ -1,10 +1,13 @@
 """
+make_plots_m1l0.py
 Script to call plot_functions to make plots for a particular file
 """
 
 import MirrorPlots.plot_functions as pf
 import matplotlib.pyplot as plt
-
+# Pre-Install:
+##############################################################################
+# Y Motion
 # Plot Y Data
 #pf.plot_data(\
 #'/reg/neh/home/sheppard/HOMSRefurbish/M1L0-PreInstall-Checkout/Y_limit_rpt_test3-5_9_4_19.csv',
@@ -26,6 +29,8 @@ import matplotlib.pyplot as plt
 #'/reg/neh/home/sheppard/HOMSRefurbish/M1L0-PreInstall-Checkout/Y_1_um_adj_9_4_19.csv',
 #'mm', pdf_title='M1L0-Y-1umAdjust-PreInstallCheckoutPlots.pdf')
 
+##############################################################################
+# X Motion
 # Plot X Data
 #pf.plot_data(\
 #'/reg/neh/home/sheppard/HOMSRefurbish/M1L0-PreInstall-Checkout/X_limit_rpt_9_4_19.csv',
@@ -42,6 +47,8 @@ import matplotlib.pyplot as plt
 #'/reg/neh/home/sheppard/HOMSRefurbish/M1L0-PreInstall-Checkout/X_1_um_adj_9_4_19.csv',
 #'mm', pdf_title='M1L0-X-1umAdjust-PreInstallCheckoutPlots.pdf')
 
+##############################################################################
+# Pitch Motion
 # Plot Pitch Data
 #pf.plot_data(\
 #'/reg/neh/home/sheppard/HOMSRefurbish/M1L0-PreInstall-Checkout/PitchCoarse_limit_rpt_9_4_19.csv',
@@ -54,9 +61,19 @@ import matplotlib.pyplot as plt
 #'/reg/neh/home/sheppard/HOMSRefurbish/M1L0-PreInstall-Checkout/PitchCoarse_1_um_adj_9_4_19.csv',
 #'urad', pdf_title='M1L0-Pitch-1umAdjust-PreInstallCheckoutPlots.pdf')
 
-pf.plot_and_zoom(\
-'/reg/neh/home/sheppard/HOMSRefurbish/M1L0-PreInstall-Checkout/PitchCoarse_1_um_adj_9_4_19.csv',
-'urad', pdf_title='M1L0/M1L0-Pitch-1umAdjustRptAbility-PreInstallCheckoutPlots.pdf')
+#pf.plot_and_zoom(\
+#'/reg/neh/home/sheppard/HOMSRefurbish/M1L0-PreInstall-Checkout/PitchCoarse_1_um_adj_9_4_19.csv',
+#'urad', pdf_title='M1L0/M1L0-Pitch-1umAdjustRptAbility-PreInstallCheckoutPlots.pdf')
+
+pf.plot_data('/reg/neh/home/sheppard/FlatMirrors/Post-Install-Scope-Files/M1L0/Pitch-repeatability-2019_12_18.csv',
+             'urad', gantry_cutoff=True, by_index=True, include_slave=False)#, pdf_title='M1L0/Post-Install/M1L0-Pitch-Repeatability.pdf')
+pitch_data = pf.get_data('/reg/neh/home/sheppard/FlatMirrors/Post-Install-Scope-Files/M1L0/Pitch-repeatability-2019_12_18.csv',
+                         22, gantry_cutoff=True)
+pitch_tvals = pitch_data[0][0][9086: 13373]
+pitch_actpos = pitch_data[0][1][9086: 13373]
+pitch_setpos = pitch_data[0][2][9086: 13373]
+rms_error = pf.calculate_rms_error(pitch_tvals, pitch_actpos, pitch_setpos)
+print(rms_error)
 
 input('Press <Return> to close')
 plt.close('all')

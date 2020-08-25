@@ -11,7 +11,7 @@ from matplotlib.backends.backend_pdf import PdfPages
 import ntpath
 
 
-def get_data(fname, start_line, gantry_cutoff=False, debug=False,
+def get_data(fname, start_line=26, gantry_cutoff=True, debug=False,
              include_slave=False):
     """
     Function to read data file and store data
@@ -44,14 +44,14 @@ def get_data(fname, start_line, gantry_cutoff=False, debug=False,
     f.readline() # line 2
 
     start_time_line = f.readline() # line 3
-    start_time_array = start_time_line.split()
+    start_time_array = start_time_line.split(',')
     end_time_line = f.readline() # line 4
-    end_time_array = end_time_line.split()
+    end_time_array = end_time_line.split('.')
 
     f.close()
 
-    start_time_split = start_time_array[6].split(':')
-    end_time_split = end_time_array[6].split(':')
+    start_time_split = start_time_array[5].split(':')
+    end_time_split = end_time_array[5].split(':')
 
     start_hr = float(start_time_split[0])
     start_min = float(start_time_split[1])
@@ -85,7 +85,7 @@ def get_data(fname, start_line, gantry_cutoff=False, debug=False,
             line = f.readline()
             cnt += 1
             if cnt >= start_line:
-                line_array = line.split('\t')
+                line_array = line.split(',')
                 try:
                     if include_slave:
                         act_pos.append(float(line_array[1]))
@@ -156,6 +156,63 @@ def get_data(fname, start_line, gantry_cutoff=False, debug=False,
         print('NC var to PLC var Ratio:', len(act_velo)/len(x_gantry))
 
     return (nc_data, gantry_data)
+
+
+def get_data_scope_general(fname, n_axes, sample_freq=500, start_line=26):
+    f = open(fname, 'r')
+    # Read 1st two lines
+    f.readline() # line 1
+    f.readline() # line 2
+
+    # Extract timestamp strings
+    start_time_line = f.readline() # line 3
+    start_time_array = start_time_line.split(',')
+    end_time_line = f.readline() # line 4
+    end_time_array = end_time_line.split(',')
+
+    f.close()
+
+    # Parse timestamps
+    start_time_split = start_time_array[5].split(':')
+    end_time_split = end_time_array[5].split(':')
+    start_hr = float(start_time_split[0])
+    start_min = float(start_time_split[1])
+    start_sec = float(start_time_split[2])
+    end_hr = float(end_time_split[0])
+    end_min = float(end_time_split[1])
+    end_sec = float(end_time_split[2])
+
+    # Get Timestamps in seconds
+    start = (start_hr*3600) + (start_min*60.0) + start_sec
+    end = (end_hr*3600) + (end_min*60.0) + end_sec
+    delta_t = end - start
+
+    print(delta_t)
+
+    n_points = int(delta_t * sample_freq)
+
+    data = np.zeros((n_points + 1, n_axes))
+
+    # Populate date
+    with open(fname, 'r') as f:
+        line = f.readline()
+        line_no = 1
+        i = 0
+        while line:
+            line = f.readline()
+            line_no += 1
+            if line_no >= start_line and line != 'EOF\n':
+#                print(line)
+                line_array = line.split(',')
+#                print(line_array)
+                for j in range(len(line_array)):
+                    if j % 2 != 0:
+#                        print(line_array[j])
+                        data[i][j // 2] = float(line_array[j])
+                i += 1
+    # Swap rows and columns:
+    data = data.transpose()
+    return data
 
 
 def plot_data(filename, nc_unit, gantry_unit='nm', include_slave=False,
@@ -388,7 +445,7 @@ def make_overlay_plot(time, y1, y2, y1_axis_label, y2_axis_label, y1_color,
 
 def make_plot(time, y1, y1_label, y_axis_label, plot_label, y2=None,
               y2_label=None, x_range=None, y_range=None, by_index=False,
-              show=True, figsize=None):
+              show=True, figsize=None, caption1=None, caption2=None):
     """
     Function to make a basic plot
 
@@ -440,6 +497,14 @@ def make_plot(time, y1, y1_label, y_axis_label, plot_label, y2=None,
     ax.legend(loc='best')
     ax.grid(True)
     ax.set_title(plot_label)
+    if caption1:
+        ax.text(0.95, 0.01, caption1, verticalalignment='bottom',
+                horizontalalignment='right', transform=ax.transAxes,
+                fontsize=12)
+    if caption2:
+        ax.text(0.45, 0.973, caption2, verticalalignment='bottom',
+                horizontalalignment='right', transform=ax.transAxes,
+                fontsize=12)
     if show:
         f.show()
 
@@ -596,3 +661,45 @@ def fftplot(x_axis, y_axis,
     ax.set_ylabel(left_label)
     ax.set_xlim(min(x_axis), max(x_axis))
     f.show()
+
+
+def calculate_rms_error(tvals, act_vals, set_vals):
+    rms_error = 0
+    for i in range(len(tvals)):
+        rms_error += (act_vals[i] - set_vals[i])**2
+    rms_error /= len(tvals)
+    rms_error = np.sqrt(rms_error)
+    return rms_error
+
+
+def plot_data_multiple_files(pdf_fname, pdf_title, date, fnames, fname_base,
+                             fname_info, indeces_of_interest=[1], metadata=''):
+    FIGSIZE = (11.69, 8.27)
+    with PdfPages(pdf_fname) as pdf:
+        firstPage = plt.figure(figsize=FIGSIZE)
+        firstPage.clf()
+        firstPage.text(0.5, 0.5, pdf_title + '\n',
+                       transform=firstPage.transFigure, size=24,
+                       ha="center")
+        firstPage.text(0.5, 0.4, date + '\n', transform=firstPage.transFigure,
+                       size=20, ha="center")
+        firstPage.text(0.5, 0.5, metadata, transform=firstPage.transFigure,
+                       size=16, ha="center")
+        pdf.savefig()
+        plt.close()
+        for i in range(len(fnames)):
+            if 'Pitch' in fnames[i]:
+                nc_unit = 'urad'
+            else:
+                nc_unit = 'um'
+            data = get_data(fname_base + fnames[i])
+            nc_data = data[0]
+            rms_error = calculate_rms_error(nc_data[0], nc_data[1], nc_data[2])
+            make_plot(nc_data[0], nc_data[1], 'Actual Position',
+                      'Position (%s)' % nc_unit,
+                      fnames[i] + '\n' + 'Actual Position and Set Position', y2=nc_data[2],
+                      y2_label='Set Position', show=False, figsize=FIGSIZE,
+                      caption1='RMS Error: ' + str(rms_error) + ' ' + nc_unit,
+                      caption2=fname_info[i])
+
+            pdf.savefig()

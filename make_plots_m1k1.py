@@ -36,9 +36,9 @@ import matplotlib.pyplot as plt
 #'um', pdf_title='M1K1-Y-1umAdjust-PreInstallCheckoutPlots.pdf')
 
 # Plot Encoder Noise Data
-#pf.plot_enc_noise(\
-#'/reg/neh/home/sheppard/FlatMirrors/M1K1/M1K1_ScopeFiles/Y_EncNoise_2019_10_23.csv',
-#'um')
+pf.plot_data(\
+'/reg/neh/home/sheppard/FlatMirrors-PreInstall-Checkouts/M1K1/Y_EncNoise_2019_10_23.csv',
+'um', gantry_cutoff=True)
 ###########################################################################
 
 ###########################################################################
@@ -84,9 +84,9 @@ import matplotlib.pyplot as plt
 #'/reg/neh/home/sheppard/FlatMirrors/M1K1/M1K1_ScopeFiles/Pitch_repeatability_2019_11_27.csv',
 #'urad', pdf_title='M1K1/M1K1-Pitch-Repeatability-PreInstallCheckoutPlots.pdf')
 
-pf.plot_and_zoom(\
-'/reg/neh/home/sheppard/FlatMirrors/M1K1/M1K1_ScopeFiles/Pitch_1um_adjust_2019_11_27.csv',
-'urad', pdf_title='M1K1/M1K1-Pitch-1umAdjust-PreInstallCheckoutPlots.pdf')
+#pf.plot_and_zoom(\
+#'/reg/neh/home/sheppard/FlatMirrors/M1K1/M1K1_ScopeFiles/Pitch_1um_adjust_2019_11_27.csv',
+#'urad', pdf_title='M1K1/M1K1-Pitch-1umAdjust-PreInstallCheckoutPlots.pdf')
 ###########################################################################
 
 input('Press <Return> to close')
